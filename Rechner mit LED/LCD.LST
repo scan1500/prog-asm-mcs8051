@@ -1,0 +1,106 @@
+A51 MACRO ASSEMBLER  LCD                                                                  12/15/2016 15:04:57 PAGE     1
+
+
+MACRO ASSEMBLER A51 V8.01
+OBJECT MODULE PLACED IN LCD.OBJ
+ASSEMBLER INVOKED BY: C:\Keil\C51\BIN\A51.EXE LCD.a51 SET(SMALL) DEBUG EP
+
+LOC  OBJ            LINE     SOURCE
+
+0000                   1     ORG 0000H
+0000 020030            2             LJMP MAIN
+0030                   3             ORG 0030H
+0030                   4     MAIN:
+                       5     
+                       6     ;--------------------------INIT-----------------------------------
+                       7     
+                       8             
+0030 903000            9             MOV DPTR, #3000H
+                      10     
+0033 740E             11             MOV A, #00001110B 
+0035 F0               12             MOVX @DPTR, A
+                      13     
+                      14     
+0036 7438             15             MOV A, #38H
+0038 F0               16             MOVX @DPTR, A
+0039 1159             17             ACALL DELAY
+                      18     
+                      19     
+003B 7401             20             MOV A, #00000001B
+003D F0               21             MOVX @DPTR, A
+003E 1159             22             ACALL DELAY
+                      23     
+                      24     ;--------------------------DATA-----------------------------------
+                      25     
+0040 903001           26             MOV DPTR, #3001H
+                      27     
+0043 7448             28             MOV A, #01001000B
+0045 F0               29             MOVX @DPTR, A
+0046 1162             30             ACALL DELAY2
+                      31     
+                      32     
+0048 7D25             33             MOV R5, #25H
+                      34     
+                      35     
+004A                  36     test2:  
+004A 7448             37             MOV A, #01001000B
+004C F0               38             MOVX @DPTR, A
+004D 1162             39             ACALL DELAY2
+004F DDF9             40             DJNZ R5, test2
+                      41     
+                      42     
+                      43     
+                      44     
+                      45     
+0051 1162             46             ACALL DELAY2
+                      47     
+                      48     
+0053 903000           49             MOV DPTR, #3000H
+                      50     
+0056 7408             51             MOV A, #0001000B
+0058 F0               52             MOVX @DPTR, A
+                      53                     
+                      54     
+0059                  55     DELAY:
+0059 7A0A             56             MOV R2, #10
+005B 79FA             57     del2: MOV R1, #250
+005D D9FE             58     del1: DJNZ R1, del1
+A51 MACRO ASSEMBLER  LCD                                                                  12/15/2016 15:04:57 PAGE     2
+
+005F DAFA             59             DJNZ R2, del2
+0061 22               60             RET
+                      61     
+                      62     
+0062                  63     DELAY2:
+0062 7B01             64             MOV R3, #1
+0064 7AFF             65     del31: MOV R2, #0FFH
+0066 79FF             66     del21: MOV R1, #0FFH
+0068 D9FE             67     del11: DJNZ R1, del11
+006A DAFA             68             DJNZ R2, del21
+006C DBF6             69             DJNZ R3, del31
+006E 22               70             RET
+                      71     
+                      72             END
+A51 MACRO ASSEMBLER  LCD                                                                  12/15/2016 15:04:57 PAGE     3
+
+SYMBOL TABLE LISTING
+------ ----- -------
+
+
+N A M E             T Y P E  V A L U E   ATTRIBUTES
+
+DEL1 . . . . . . .  C ADDR   005DH   A   
+DEL11. . . . . . .  C ADDR   0068H   A   
+DEL2 . . . . . . .  C ADDR   005BH   A   
+DEL21. . . . . . .  C ADDR   0066H   A   
+DEL31. . . . . . .  C ADDR   0064H   A   
+DELAY. . . . . . .  C ADDR   0059H   A   
+DELAY2 . . . . . .  C ADDR   0062H   A   
+MAIN . . . . . . .  C ADDR   0030H   A   
+TEST2. . . . . . .  C ADDR   004AH   A   
+
+
+REGISTER BANK(S) USED: 0 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S)

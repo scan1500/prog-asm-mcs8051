@@ -1,0 +1,272 @@
+;P1 = BUTTONS
+;P3 = LEDS
+;R0 - R3 = LED-Vergleichs-Register
+    ;R0 = 2
+    ;R1 = 8
+    ;R2 = 32
+    ;R3 = 128
+;R4 = R4 wird von 1 an ink. und in R5 geladen
+;R5 = Zählregister
+;R6 = Schleifenregister1
+;R7 = Schleifenregister2
+INIT:
+ORG 0
+;LED-Vergleichsregister vorladen
+MOV P1, #255 ;BUTTON vorladen
+MOV P3, #0
+MOV R0, #2
+MOV R1, #8
+MOV R2, #32
+MOV R3, #128
+MOV R4, #1
+MOV A, #0
+
+LCALL DELAYSHORT
+LCALL DELAYSHORT
+LCALL DELAYSHORT
+
+;Anfangs-Sequenz
+MOV P3,#1
+STARTING_BUTTON:    ;Beginne das Spiel, wenn irgendeine Taste gedrückt wurde
+
+	MOV A,P3
+	RL A
+	MOV P3,A
+	LCALL DELAYSHORT
+	MOV A, P1
+    XRL A, #255
+    
+JZ STARTING_BUTTON
+MOV  P3,#0
+
+START:
+
+	LCALL DELAYLONG
+	LCALL DELAYLONG
+	LCALL DELAYLONG
+
+	MOV A,R4
+    MOV R5, A        ;Lade R4 in R5 -> R4 fängt bei 1 an und wird für jede Stage inkrementiert
+    LCALL LED_SEQ    ;Springe in die LED Sequenzen, Durchläufe abh. von R5!
+    MOV A, R4
+	MOV R5, A        ;Lade R4(unvertändert) in R5, für gleiche Anzahl an Abfolgen der Tastenabfrage
+    LCALL BUT_SEQ    ;Springe in die Button Sequenzen, Durchläufe abh. von R5!
+    INC R4            ;Inkrementiere R4 für die nächsten Durchläufe
+
+	LCALL DELAYLONG        ;Warte ~1s
+    LCALL DELAYLONG        ;Warte ~1s
+    LCALL DELAYLONG        ;Warte ~1s
+
+    MOV A, #9        ;Lade den Wert 9 in Akku
+    SUBB A, R4        ;Subtrahiere R4 vom Akku
+	JZ GEWONNEN
+
+JMP START
+
+GEWONNEN:
+LCALL WIN
+
+;------------------------------------------------------------------------------------------------
+LED_SEQ:
+;--------------------1.SequenceSTART-------------
+    MOV P3, R0     ;Gebe den Wert von R0 als LED aus
+    LCALL DELAYLONG ;Warte ~1 Sekunde
+    MOV P3, #0    ;Deaktiviere die LED-Anzeige
+    LCALL DELAYLONG    ;Warte ~1 Sekunde
+    DEC R5        ;Dekrementiere Zählregister
+    MOV A, R5    ;Lade Zählregister in Akku
+    JZ ENDSEQ    ;Wenn Akku = 0, Springe raus.
+;--------------------2.SequenceSTART-------------
+    MOV P3, R3
+    LCALL DELAYLONG
+    MOV P3, #0
+    LCALL DELAYLONG
+    DEC R5
+    MOV A, R5
+    JZ ENDSEQ
+;--------------------3.SequenceSTART-------------
+    MOV P3, R1
+    LCALL DELAYLONG
+    MOV P3, #0
+    LCALL DELAYLONG
+    DEC R5
+    MOV A, R5
+    JZ ENDSEQ
+;--------------------4.SequenceSTART-------------
+    MOV P3, R2
+    LCALL DELAYLONG
+    MOV P3, #0
+    LCALL DELAYLONG
+    DEC R5
+    MOV A, R5
+    JZ ENDSEQ
+;--------------------5.SequenceSTART-------------
+    MOV P3, R3
+    LCALL DELAYLONG
+    MOV P3, #0
+    LCALL DELAYLONG
+    DEC R5
+    MOV A, R5
+    JZ ENDSEQ
+;--------------------6.SequenceSTART-------------
+    MOV P3, R0
+    LCALL DELAYLONG
+    MOV P3, #0
+    LCALL DELAYLONG
+    DEC R5
+    MOV A, R5
+    JZ ENDSEQ
+;--------------------7.SequenceSTART-------------
+    MOV P3, R2
+    LCALL DELAYLONG
+    MOV P3, #0
+    LCALL DELAYLONG
+    DEC R5
+    MOV A, R5
+    JZ ENDSEQ
+;--------------------8.SequenceSTART-------------
+    MOV P3, R1
+    LCALL DELAYLONG
+    MOV P3, #0
+    LCALL DELAYLONG
+    DEC R5
+    MOV A, R5
+    JZ ENDSEQ
+;------------------------------------------------
+ENDSEQ:
+RET
+;------------------------------------------------------------------------------------------------
+BUT_SEQ:
+;--------------------1.ButtonCHECK-------------
+    MOV A, #0                ;Akku leeren
+    LCALL BUTTON_PUSHED        ;Überprüfe ob eine Taste gedrück wurde
+    ANL A, R0                ;Überprüfe ob die richtige Taste gedrückt wurde
+    JZ LOOSE                    ;Falls FALSCH -> Ende
+    DEC R5                    ;Falls RICHTIG -> Dekrementiere Zählregister (Nächste Taste prüfen?)
+    MOV A, R5                ;Lade Zählregister in Akku
+    JZ ENDBUT                ;Wenn Akku = 0, Springe raus.
+;--------------------2.ButtonCHECK-------------
+    MOV A, #0            
+    LCALL BUTTON_PUSHED        
+    ANL A, R3                
+    JZ LOOSE                
+    DEC R5                    
+    MOV A, R5        
+    JZ ENDBUT                
+;--------------------3.ButtonCHECK-------------
+    MOV A, #0                
+    LCALL BUTTON_PUSHED        
+    ANL A, R1            
+    JZ LOOSE                    
+    DEC R5                    
+    MOV A, R5                
+    JZ ENDBUT                
+;--------------------4.ButtonCHECK-------------
+    MOV A, #0            
+    LCALL BUTTON_PUSHED    
+    ANL A, R2                
+    JZ LOOSE                
+    DEC R5                    
+    MOV A, R5                
+    JZ ENDBUT                    
+;--------------------5.ButtonCHECK-------------
+    MOV A, #0                
+    LCALL BUTTON_PUSHED    
+    ANL A, R3                
+    JZ LOOSE            
+    DEC R5                    
+    MOV A, R5            
+    JZ ENDBUT                    
+;--------------------6.ButtonCHECK-------------
+    MOV A, #0                
+    LCALL BUTTON_PUSHED    
+    ANL A, R0                
+    JZ LOOSE                
+    DEC R5                    
+    MOV A, R5                
+    JZ ENDBUT                    
+;--------------------7.ButtonCHECK-------------
+    MOV A, #0                
+    LCALL BUTTON_PUSHED        
+    ANL A, R2                
+    JZ LOOSE                    
+    DEC R5                    
+    MOV A, R5                
+    JZ ENDBUT                    
+;--------------------8.ButtonCHECK-------------
+    MOV A, #0                
+    LCALL BUTTON_PUSHED        
+    ANL A, R1                
+    JZ LOOSE                    
+    DEC R5                    
+    MOV A, R5                
+    JZ ENDBUT                
+;----------------------------------------------
+ENDBUT:
+MOV P3, #255    ;Gebe alle LEDS aus (Stage geschafft)
+LCALL DELAYLONG        ;Warte ~1s
+LCALL DELAYLONG        ;Warte ~1s
+LCALL DELAYLONG        ;Warte ~1s
+MOV P3, #0        ;Deaktiviere die LEDS
+RET
+;------------------------------------------------------------------------------------------------
+LOOSE:
+JMP INIT
+
+;Subroutine(Button pushed?)
+BUTTON_PUSHED:
+    MOV A, P1
+    XRL A, #255    
+JZ BUTTON_PUSHED
+LCALL DELAYSHORT
+RET
+
+;Subroutine(~0.5s DELAYLONG)
+DELAYLONG:
+    MOV R7, #255	
+    LOOP_OUT:
+	MOV R6, #255
+        LOOP_IN:
+		NOP
+		NOP
+		NOP	
+		NOP
+		NOP
+		NOP
+        DJNZ R6, LOOP_IN
+    DJNZ R7, LOOP_OUT
+RET
+
+;Subroutine (~255ms)
+DELAYSHORT:
+    MOV R7, #255	
+    LOOPS_OUT:
+	MOV R6, #230
+        LOOPS_IN:
+		NOP
+		NOP
+        DJNZ R6, LOOPS_IN
+    DJNZ R7, LOOPS_OUT
+RET
+
+;WIN-LED-Sequenz
+WIN:
+MOV P3, #10101010B    
+LCALL DELAYSHORT           
+MOV P3, #01010101B
+LCALL DELAYSHORT
+MOV P3, #10101010B
+LCALL DELAYSHORT            
+MOV P3, #01010101B
+LCALL DELAYSHORT
+MOV P3, #10101010B    
+LCALL DELAYSHORT           
+MOV P3, #01010101B
+LCALL DELAYSHORT
+MOV P3, #10101010B
+LCALL DELAYSHORT            
+MOV P3, #01010101B
+LCALL DELAYSHORT
+SJMP WIN
+
+END

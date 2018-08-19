@@ -1,0 +1,115 @@
+A51 MACRO ASSEMBLER  AUFGABE2_2                                                           10/27/2016 15:23:32 PAGE     1
+
+
+MACRO ASSEMBLER A51 V8.01
+OBJECT MODULE PLACED IN aufgabe2_2.OBJ
+ASSEMBLER INVOKED BY: C:\Keil\C51\BIN\A51.EXE aufgabe2_2.a51 SET(SMALL) DEBUG EP
+
+LOC  OBJ            LINE     SOURCE
+
+0000                   1     ORG 0
+                       2     
+0000 7B01              3     MOV R3, #01H  
+0002 7C02              4     MOV R4, #02H  
+                       5     
+                       6     
+0004 74FF              7     MOV A, #0FFH
+0006 F590              8     MOV P1, A
+                       9     
+                      10     
+0008                  11     TASTER1_GEDRUECKT:
+0008 E590             12             MOV A, P1  
+000A 5B               13             ANL A, R3  
+000B 70FB             14     JNZ TASTER1_GEDRUECKT
+                      15     
+                      16     
+000D 7D01             17     MOV R5, #1
+000F 75B000           18     MOV P3, #0
+                      19     
+                      20     
+0012                  21     SHIFT_LEFT:
+                      22             
+0012 7964             23             MOV R1, #100
+0014 7AB4             24             MOV R2, #180
+                      25     
+0016 8DB0             26             MOV P3, R5
+0018 ED               27             MOV A, R5
+0019 23               28             RL A
+001A FD               29             MOV R5, A
+                      30             
+001B                  31             WAIT_OUT_LEFT:
+001B                  32                     WAIT_IN_LEFT:
+001B 00               33                     NOP
+001C 00               34                     NOP
+001D 00               35                     NOP
+001E D9FB             36                     DJNZ R1, WAIT_IN_LEFT 
+0020 DAF9             37             DJNZ R2, WAIT_OUT_LEFT
+                      38     
+0022 E590             39     MOV A, P1  
+0024 5B               40     ANL A, R3  
+0025 70E1             41     JNZ TASTER1_GEDRUECKT
+                      42     
+0027 E590             43     MOV A, P1  
+0029 5C               44     ANL A, R4  
+002A 6003             45     JZ SHIFT_RIGHT
+                      46     
+002C BD80E3           47     CJNE R5, #10000000B, SHIFT_LEFT
+                      48     
+                      49     
+002F                  50     SHIFT_RIGHT:
+                      51     
+002F 7964             52             MOV R1, #100
+0031 7AB4             53             MOV R2, #180
+                      54     
+                      55     
+0033 8DB0             56             MOV P3, R5
+0035 ED               57             MOV A,R5
+0036 03               58             RR A
+A51 MACRO ASSEMBLER  AUFGABE2_2                                                           10/27/2016 15:23:32 PAGE     2
+
+0037 FD               59             MOV R5,A
+                      60     
+0038                  61             WAIT_OUT_RIGHT:
+0038                  62                     WAIT_IN_RIGHT:
+0038 00               63                     NOP
+0039 00               64                     NOP
+003A 00               65                     NOP
+003B D9FB             66                     DJNZ R1, WAIT_IN_RIGHT 
+003D DAF9             67             DJNZ R2, WAIT_OUT_RIGHT
+                      68     
+003F E590             69     MOV A, P1  
+0041 5B               70     ANL A, R3  
+0042 70C4             71     JNZ TASTER1_GEDRUECKT
+                      72     
+0044 E590             73     MOV A, P1  
+0046 5C               74     ANL A, R4  
+0047 60C9             75     JZ SHIFT_LEFT
+                      76     
+0049 BD01E3           77     CJNE R5, #00000001B, SHIFT_RIGHT
+                      78     
+004C 80C4             79     SJMP SHIFT_LEFT
+                      80     
+                      81     END
+A51 MACRO ASSEMBLER  AUFGABE2_2                                                           10/27/2016 15:23:32 PAGE     3
+
+SYMBOL TABLE LISTING
+------ ----- -------
+
+
+N A M E             T Y P E  V A L U E   ATTRIBUTES
+
+P1 . . . . . . . .  D ADDR   0090H   A   
+P3 . . . . . . . .  D ADDR   00B0H   A   
+SHIFT_LEFT . . . .  C ADDR   0012H   A   
+SHIFT_RIGHT. . . .  C ADDR   002FH   A   
+TASTER1_GEDRUECKT.  C ADDR   0008H   A   
+WAIT_IN_LEFT . . .  C ADDR   001BH   A   
+WAIT_IN_RIGHT. . .  C ADDR   0038H   A   
+WAIT_OUT_LEFT. . .  C ADDR   001BH   A   
+WAIT_OUT_RIGHT . .  C ADDR   0038H   A   
+
+
+REGISTER BANK(S) USED: 0 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S)

@@ -1,0 +1,738 @@
+A51 MACRO ASSEMBLER  SEGMENT                                                              12/15/2016 15:19:58 PAGE     1
+
+
+MACRO ASSEMBLER A51 V8.01
+OBJECT MODULE PLACED IN segment.OBJ
+ASSEMBLER INVOKED BY: C:\Keil\C51\BIN\A51.EXE segment.a51 SET(SMALL) DEBUG EP
+
+LOC  OBJ            LINE     SOURCE
+
+                       1     ;R0 -> Speichert die Zahl, die aktuell eingeben wird -> Ausgabe auf rechter 7-Seg-Anzeige
+                       2     ;R1 -> Speichert die Zahl aus R0 in R1 wenn R0 bereits belegt ist und gibt diese auf der li
+                             nken Anzeige aus
+                       3     ;R2 -> Zwischenspeicher für R0
+                       4     ;R3 -> Zwischenspeicher für R1
+                       5     ;R5 -> Register für "="
+                       6     ;R6 -> Register für Warteschleife
+                       7     ;R7 -> Speichert den Operator ab
+                       8     ;B (R8) -> Vorladen mit Wert 10 für Mult. / Verw. für Rest bei Divisionen
+                       9     
+                      10     ;TABLE: #00111111B, #00000110B, #01011011B, #01001111B, #01100110B, #01101101B, #01111101B,
+                              #00000111B, #01111111B, #01100111B
+                      11                             
+                      12     ;  7 Segment format
+                      13     ;----------------------
+                      14     ;  0 -> 00111111
+                      15     ;  1 -> 00000110
+                      16     ;  2 -> 01011011
+                      17     ;  3 -> 01001111
+                      18     ;  4 -> 01100110
+                      19     ;  5 -> 01101101
+                      20     ;  6 -> 01111101
+                      21     ;  7 -> 00000111
+                      22     ;  8 -> 01111111
+                      23     ;  9 -> 01100111
+                      24     
+                      25     
+0000                  26     ORG 0
+                      27     
+0000 02016D           28     LJMP MAIN
+                      29       
+0023                  30     ORG 23H
+0023 020100           31     LJMP SERINT
+                      32     
+0100                  33     ORG 100H
+0100                  34     SERINT:
+                      35     
+0100 B8FF02           36             CJNE R0, #255, INIT_NEXT_INPUT ;Wenn bereits ein Wert in R0 (Wert != 255) steht, sp
+                             ringe an INIT_NEXT_INPUT
+0103 8004             37             JMP READSBUF_DIGIT
+                      38             
+0105                  39             INIT_NEXT_INPUT: ;Hier wird der Wert von R0 in R1 zwischengespeichert und auf die n
+                             ächste Eingabe gewartet
+0105 E8               40             MOV A, R0
+0106 F9               41             MOV R1, A
+0107 78FF             42             MOV R0, #255 ;R0 zurücksetzen, Wert ist jetzt in R1 gespeichert
+                      43             
+0109                  44             READSBUF_DIGIT:
+0109 E599             45             MOV A, SBUF ;Tastatureingabe von SBUF IN AKKU laden
+010B 547F             46             ANL A, #01111111B ;Forderste 1 (Parity Bit) wegfiltern, um ASCII Wert zu erhalten
+010D C298             47             CLR RI 
+                      48     
+010F F8               49     MOV R0, A ;Speichere die Eingabe in R0, egal welcher Wert...
+                      50             
+0110                  51              OUT_0:
+0110 B83006           52          CJNE R0, #'0', OUT_1
+0113 7800             53              MOV R0, #0
+0115 75903F           54          MOV P1, #00111111B
+A51 MACRO ASSEMBLER  SEGMENT                                                              12/15/2016 15:19:58 PAGE     2
+
+0118 32               55          RETI
+                      56          
+0119                  57          OUT_1:
+0119 B83106           58          CJNE R0, #'1', OUT_2
+011C 7801             59              MOV R0, #1
+011E 759006           60          MOV P1, #00000110B
+0121 32               61          RETI
+                      62          
+0122                  63          OUT_2:
+0122 B83206           64          CJNE R0, #'2', OUT_3
+0125 7802             65              MOV R0, #2
+0127 75905B           66          MOV P1, #01011011B
+012A 32               67          RETI
+                      68          
+012B                  69          OUT_3:
+012B B83306           70          CJNE R0, #'3', OUT_4
+012E 7803             71              MOV R0, #3
+0130 75904F           72          MOV P1, #01001111B
+0133 32               73          RETI
+                      74          
+0134                  75          OUT_4:
+0134 B83406           76          CJNE R0, #'4', OUT_5
+0137 7804             77              MOV R0, #4
+0139 759066           78          MOV P1, #01100110B
+013C 32               79          RETI
+                      80          
+013D                  81          OUT_5:
+013D B83506           82          CJNE R0, #'5', OUT_6
+0140 7805             83              MOV R0, #5
+0142 75906D           84          MOV P1, #01101101B
+0145 32               85          RETI
+                      86          
+0146                  87          OUT_6:
+0146 B83606           88          CJNE R0, #'6', OUT_7
+0149 7806             89              MOV R0, #6
+014B 75907D           90          MOV P1, #01111101B
+014E 32               91          RETI
+                      92          
+014F                  93          OUT_7:
+014F B83706           94          CJNE R0, #'7', OUT_8
+0152 7807             95              MOV R0, #7
+0154 759007           96          MOV P1, #00000111B
+0157 32               97          RETI
+                      98          
+0158                  99          OUT_8:
+0158 B83806          100          CJNE R0, #'8', OUT_9
+015B 7808            101              MOV R0, #8
+015D 75907F          102          MOV P1, #01111111B
+0160 32              103          RETI
+                     104          
+0161                 105          OUT_9:
+0161 B83906          106          CJNE R0, #'9', NO_DIGIT
+0164 7809            107              MOV R0, #9
+0166 759067          108          MOV P1, #01100111B
+0169 32              109              RETI
+                     110     
+016A                 111     NO_DIGIT:       
+016A 78FF            112     MOV R0, #255 ;R0 zurücksetzen
+016C 32              113     RETI
+                     114     
+                     115     ;--------------------------------- MAIN -----------------------------------
+016D                 116     MAIN:
+                     117     
+016D 78FF            118     MOV R0, #255
+016F 79FF            119     MOV R1, #255
+0171 7AFF            120     MOV R2, #255
+A51 MACRO ASSEMBLER  SEGMENT                                                              12/15/2016 15:19:58 PAGE     3
+
+0173 7BFF            121     MOV R3, #255
+0175 7C00            122     MOV R4, #0
+0177 7D00            123     MOV R5, #0
+0179 7E00            124     MOV R6, #0
+017B 7F00            125     MOV R7, #0
+                     126     
+                     127     ;Initialisierung des LCD
+                     128     
+017D                 129     LCD_INIT:
+017D 903000          130     MOV DPTR, #3000H
+                     131     
+0180 740E            132     MOV A, #00001110B 
+0182 F0              133     MOVX @DPTR, A
+                     134     
+0183 7438            135     MOV A, #38H
+0185 F0              136     MOVX @DPTR, A
+0186 120300          137     LCALL DELAY
+0189 120300          138     LCALL DELAY
+                     139     
+018C 7401            140     MOV A, #00000001B
+018E F0              141     MOVX @DPTR, A
+018F 120300          142     LCALL DELAY
+0192 120300          143     LCALL DELAY
+                     144     
+0195 903001          145     MOV DPTR, #3001H
+                     146     
+                     147     
+                     148     
+                     149     
+                     150     
+0198 758920          151     MOV TMOD, #20H ;Timer 1 Modus 2
+019B 758DE6          152     MOV TH1, #230 ;1200 bps
+019E 759850          153     MOV SCON, #01010000B ;UART 8 Bit, 1 Stopbit
+01A1 D28E            154     SETB TR1 ;Empfang an Timer 1 starten
+01A3 759000          155     MOV P1,#0 ; 7-Segment ausschalten
+                     156     
+01A6                 157     ENABLE_INT:
+01A6 75A890          158     MOV IE, #10010000B ;Serieller Interrupt aktiviert
+                     159     
+01A9                 160             PRUEF_R1_BELEGT:
+01A9 B9FF02          161                     CJNE R1,#255, PRUEF_R0_BELEGT
+01AC 80FB            162             SJMP PRUEF_R1_BELEGT
+                     163     
+01AE                 164             PRUEF_R0_BELEGT:
+01AE B8FF02          165                     CJNE R0, #255, DISABLE_INT
+01B1 80FB            166             SJMP PRUEF_R0_BELEGT
+                     167     
+01B3                 168     DISABLE_INT:
+01B3 75A800          169     MOV IE,#00000000B
+                     170     
+01B6 120800          171             LCALL SHOW_LEFT
+01B9 120300          172             LCALL DELAY ;WAIT 1ms
+01BC 120900          173             LCALL SHOW_RIGHT
+01BF 120300          174             LCALL DELAY ;WAIT 1ms
+                     175     
+01C2                 176     LOOPING:
+                     177     
+01C2 BAFF0B          178             CJNE R2, #255, GO_EQUALS_POLLING        ;R2 und/oder R3 sind nach Drücken einer Ope
+                             ration belegt (save_values) 
+01C5 BBFF08          179             CJNE R3, #255, GO_EQUALS_POLLING        ;daher überspringe das Operation-Polling
+01C8 120400          180             LCALL OPERATION_POLLING                         ;Überprüfen, ob eine Operation ausg
+                             ewählt wurde
+01CB BF00D8          181             CJNE R7, #0, ENABLE_INT                         ;Wenn ein Operator ausgewählt wurde
+                              dann springe zu ENABLE_INT -> Neue Zahl einlesen...
+                     182             
+01CE 80F2            183     SJMP LOOPING
+A51 MACRO ASSEMBLER  SEGMENT                                                              12/15/2016 15:19:58 PAGE     4
+
+                     184     
+01D0                 185             GO_EQUALS_POLLING:
+01D0 120600          186                     LCALL EQUALS_POLLING
+01D3 80ED            187             JMP LOOPING
+                     188     
+                     189     ;Subroutine(1ms delay)
+0300                 190     ORG 300H
+0300                 191     DELAY:
+0300 7EE6            192                     MOV R6, #230
+0302                 193                     LOOP_WAIT:
+0302 00              194                             NOP
+0303 00              195                             NOP
+0304 DEFC            196                     DJNZ R6, LOOP_WAIT
+0306 22              197     RET
+                     198     
+0400                 199     ORG 400H
+0400                 200     OPERATION_POLLING:
+                     201     
+0400 BF0002          202             CJNE R7, #0, RETURN
+0403 8001            203             JMP READSBUF_OP
+                     204     
+0405                 205             RETURN:
+0405 22              206             RET
+                     207              
+0406                 208             READSBUF_OP:
+0406 309843          209             JNB RI, NO_OPCODE ;Falls RI nicht gsetzt, sprich Stopbit noch nicht angekommen, spr
+                             inge zu NO_OPCODE
+0409 E599            210             MOV A, SBUF ;Tastatureingabe von SBUF IN AKKU laden
+040B 547F            211             ANL A, #01111111B ;Forderste 1 (Parity Bit) wegfiltern, um ASCII Wert zu erhalten
+040D C298            212             CLR RI
+                     213     
+040F FF              214     MOV R7, A ;Speichere die Eingabe in R7, egal welcher Wert...
+                     215             
+0410                 216              PLUS:
+0410 BF2B0C          217          CJNE R7, #'+', MINUS
+                     218     
+0413 742B            219                     MOV A, #00101011B
+0415 F0              220                     MOVX @DPTR, A
+0416 120300          221                     LCALL DELAY
+0419 120300          222                     LCALL DELAY
+                     223     
+041C 8031            224              SJMP SAVE_VALUES
+041E 22              225          RET
+                     226          
+041F                 227          MINUS:
+041F BF2D0C          228          CJNE R7, #'-', MULT
+                     229     
+0422 742D            230                     MOV A, #00101101B
+0424 F0              231                     MOVX @DPTR, A
+0425 120300          232                     LCALL DELAY
+0428 120300          233                     LCALL DELAY
+                     234     
+042B 8022            235              SJMP SAVE_VALUES
+042D 22              236          RET
+                     237          
+042E                 238          MULT:
+042E BF2A0C          239          CJNE R7, #'*', DIVIDE
+                     240     
+0431 742A            241                     MOV A, #00101010B
+0433 F0              242                     MOVX @DPTR, A
+0434 120300          243                     LCALL DELAY
+0437 120300          244                     LCALL DELAY
+                     245     
+043A 8013            246              SJMP SAVE_VALUES
+043C 22              247          RET
+                     248          
+A51 MACRO ASSEMBLER  SEGMENT                                                              12/15/2016 15:19:58 PAGE     5
+
+043D                 249          DIVIDE:
+043D BF2F0C          250          CJNE R7, #'/', NO_OPCODE
+                     251     
+0440 742F            252                     MOV A, #00101111B
+0442 F0              253                     MOVX @DPTR, A
+0443 120300          254                     LCALL DELAY
+0446 120300          255                     LCALL DELAY
+                     256     
+0449 8004            257              SJMP SAVE_VALUES
+044B 22              258          RET
+                     259              
+044C                 260     NO_OPCODE:      
+044C 7F00            261     MOV R7, #0  ;R7 zurücksetzen
+044E 22              262     RET
+                     263              
+044F                 264     SAVE_VALUES: 
+044F E8              265     MOV A, R0 ;Wert von R0 in R2 zwischenspeichern
+0450 FA              266     MOV R2, A
+0451 78FF            267     MOV R0, #255
+                     268             
+0453 E9              269     MOV A, R1 ;Wert von R1 in R3 zwischenspeichern
+0454 FB              270     MOV R3, A
+0455 79FF            271     MOV R1, #255
+                     272     
+0457 759000          273     MOV P1, #0
+045A 22              274     RET
+                     275              
+0600                 276     ORG 600H
+0600                 277     EQUALS_POLLING:
+                     278              
+0600 BD0002          279             CJNE R5, #0, RETURN_EQ
+0603 8001            280             JMP READSBUF_EQ
+                     281             
+0605                 282             RETURN_EQ:
+0605 22              283             RET
+                     284              
+0606                 285             READSBUF_EQ:
+0606 E599            286             MOV A, SBUF ;Tastatureingabe von SBUF IN AKKU laden
+0608 547F            287             ANL A, #01111111B ;Forderste 1 (Parity Bit) wegfiltern, um ASCII Wert zu erhalten
+060A C298            288             CLR RI
+                     289     
+                     290     
+060C FD              291             MOV R5, A ;Speichere die Eingabe in R5, egal welcher Wert...
+                     292              
+060D BD3D02          293             CJNE R5, #'=', NO_CALC
+0610 8003            294             JMP CALC
+                     295              
+0612                 296              NO_CALC:
+0612 7D00            297              MOV R5, #0
+0614 22              298              RET
+                     299              
+0615                 300              CALC:
+0615 75F00A          301              MOV B, #10
+                     302     
+                     303             
+0618 743D            304                     MOV A, #00111101B
+061A F0              305                     MOVX @DPTR, A
+061B 120300          306                     LCALL DELAY
+061E 120300          307                     LCALL DELAY
+                     308              
+0621                 309              CALC_ADD:
+0621 BF2B27          310              CJNE R7, #'+', CALC_SUB
+                     311                     
+0624 E9              312                     MOV A, R1
+0625 A4              313                     MUL AB
+0626 28              314                     ADD A, R0
+A51 MACRO ASSEMBLER  SEGMENT                                                              12/15/2016 15:19:58 PAGE     6
+
+                     315                     
+0627 F8              316                     MOV R0, A
+                     317                     
+0628 EB              318                     MOV A, R3
+0629 75F00A          319                     MOV B, #10
+062C A4              320                     MUL AB
+062D 2A              321                     ADD A, R2
+                     322                     
+062E 28              323                     ADD A, R0
+                     324                     
+062F 75F00A          325                     MOV B, #10
+0632 84              326                     DIV AB          ;A -> Dezimalstelle, B-> Einerstelle
+0633 A8F0            327                     MOV R0, B
+0635 F9              328                     MOV R1, A
+0636 7AFF            329                     MOV R2, #255
+0638 7BFF            330                     MOV R3, #255
+063A 7D00            331                     MOV R5, #0
+063C 7F00            332                     MOV R7, #0
+                     333     
+063E 120800          334             LCALL SHOW_LEFT
+0641 120300          335             LCALL DELAY ;WAIT 1ms
+0644 120900          336             LCALL SHOW_RIGHT
+0647 120300          337             LCALL DELAY ;WAIT 1ms
+                     338             
+064A 22              339              RET
+                     340              
+064B                 341              CALC_SUB:
+064B BF2D27          342              CJNE R7, #'-', CALC_MUL
+                     343                     
+064E E9              344                     MOV A, R1
+064F A4              345                     MUL AB
+0650 28              346                     ADD A, R0
+                     347                     
+0651 F8              348                     MOV R0, A
+                     349                     
+0652 EB              350                     MOV A, R3
+0653 75F00A          351                     MOV B, #10
+0656 A4              352                     MUL AB
+0657 2A              353                     ADD A, R2
+                     354                     
+                     355                     ;CLR C ;Setzte Carry Bit in jeden Fall auf 0 vor Rechnung ????
+0658 98              356                     SUBB A, R0
+0659 75F00A          357                     MOV B, #10
+                     358                     
+065C 84              359                     DIV AB          ;A -> Dezimalstelle, B-> Einerstelle
+065D A8F0            360                     MOV R0, B
+065F F9              361                     MOV R1, A
+0660 7AFF            362                     MOV R2, #255
+0662 7BFF            363                     MOV R3, #255
+0664 7D00            364                     MOV R5, #0
+0666 7F00            365                     MOV R7, #0
+                     366     
+0668 120800          367             LCALL SHOW_LEFT
+066B 120300          368             LCALL DELAY ;WAIT 1ms
+066E 120900          369             LCALL SHOW_RIGHT
+0671 120300          370             LCALL DELAY ;WAIT 1ms
+                     371             
+0674 22              372              RET
+                     373              
+0675                 374              CALC_MUL:
+0675 BF2A2C          375              CJNE R7, #'*', CALC_DIV
+                     376                     
+0678 E9              377                     MOV A, R1
+0679 A4              378                     MUL AB
+067A 75F00A          379                     MOV B, #10
+067D 28              380                     ADD A, R0
+A51 MACRO ASSEMBLER  SEGMENT                                                              12/15/2016 15:19:58 PAGE     7
+
+                     381                     
+067E F8              382                     MOV R0, A
+                     383                     
+067F EB              384                     MOV A, R3
+0680 A4              385                     MUL AB
+0681 75F00A          386                     MOV B, #10
+0684 2A              387                     ADD A, R2
+                     388                     
+0685 88F0            389                     MOV B, R0
+0687 A4              390                     MUL AB
+0688 75F00A          391                     MOV B, #10
+                     392                     
+068B 84              393                     DIV AB          ;A -> Dezimalstelle, B-> Einerstelle
+068C A8F0            394                     MOV R0, B
+068E F9              395                     MOV R1, A
+068F 7AFF            396                     MOV R2, #255
+0691 7BFF            397                     MOV R3, #255
+0693 7D00            398                     MOV R5, #0
+0695 7F00            399                     MOV R7, #0
+                     400     
+0697 120800          401             LCALL SHOW_LEFT
+069A 120300          402             LCALL DELAY ;WAIT 1ms
+069D 120900          403             LCALL SHOW_RIGHT
+06A0 120300          404             LCALL DELAY ;WAIT 1ms
+                     405              
+06A3 22              406              RET
+                     407              
+06A4                 408              CALC_DIV:
+                     409                     
+06A4 E9              410                     MOV A, R1
+06A5 A4              411                     MUL AB
+06A6 28              412                     ADD A, R0
+                     413                     
+06A7 F8              414                     MOV R0, A
+                     415                     
+06A8 EB              416                     MOV A, R3
+06A9 75F00A          417                     MOV B, #10
+06AC A4              418                     MUL AB
+06AD 2A              419                     ADD A, R2
+06AE 88F0            420                     MOV B, R0
+06B0 84              421                     DIV AB
+                     422                     
+06B1 75F00A          423                     MOV B, #10
+                     424                     
+06B4 84              425                     DIV AB          ;A -> Dezimalstelle, B-> Einerstelle
+06B5 A8F0            426                     MOV R0, B
+06B7 F9              427                     MOV R1, A
+06B8 7AFF            428                     MOV R2, #255
+06BA 7BFF            429                     MOV R3, #255
+06BC 7D00            430                     MOV R5, #0
+06BE 7F00            431                     MOV R7, #0
+                     432     
+06C0 120800          433             LCALL SHOW_LEFT
+06C3 120300          434             LCALL DELAY ;WAIT 1ms
+06C6 120900          435             LCALL SHOW_RIGHT
+06C9 120300          436             LCALL DELAY ;WAIT 1ms
+                     437                     
+06CC 22              438              RET
+                     439     
+                     440     ;Linke und Rechte 7Seg-Ausgabe als Unterprogramme
+                     441     ;R0 und R1 umwandeln:
+0800                 442     ORG 800H
+0800                 443     SHOW_LEFT:
+                     444     
+0800 B9000A          445          CJNE R1, #0, SEG_LEFT_1
+                     446     
+A51 MACRO ASSEMBLER  SEGMENT                                                              12/15/2016 15:19:58 PAGE     8
+
+0803 7430            447                     MOV A, #00110000B
+0805 F0              448                     MOVX @DPTR, A
+0806 120300          449                     LCALL DELAY
+0809 120300          450                     LCALL DELAY
+                     451     
+080C 22              452          RET
+                     453          
+080D                 454          SEG_LEFT_1:
+080D B9010A          455          CJNE R1, #1, SEG_LEFT_2
+0810 7431            456             MOV A, #00110001B
+0812 F0              457                     MOVX @DPTR, A
+0813 120300          458                     LCALL DELAY
+0816 120300          459                     LCALL DELAY
+0819 22              460          RET
+                     461          
+081A                 462          SEG_LEFT_2:
+081A B9020A          463          CJNE R1, #2, SEG_LEFT_3
+081D 7432            464             MOV A, #00110010B
+081F F0              465                     MOVX @DPTR, A
+0820 120300          466                     LCALL DELAY
+0823 120300          467                     LCALL DELAY
+0826 22              468          RET
+                     469         
+0827                 470          SEG_LEFT_3:
+0827 B9030A          471          CJNE R1, #3, SEG_LEFT_4
+082A 7433            472             MOV A, #00110011B
+082C F0              473                     MOVX @DPTR, A
+082D 120300          474                     LCALL DELAY
+0830 120300          475                     LCALL DELAY
+0833 22              476          RET
+                     477          
+0834                 478          SEG_LEFT_4:
+0834 B9040A          479          CJNE R1, #4, SEG_LEFT_5
+0837 7434            480             MOV A, #00110100B
+0839 F0              481                     MOVX @DPTR, A
+083A 120300          482                     LCALL DELAY
+083D 120300          483                     LCALL DELAY
+0840 22              484          RET
+                     485          
+0841                 486          SEG_LEFT_5:
+0841 B9050A          487          CJNE R1, #5, SEG_LEFT_6
+0844 7435            488             MOV A, #00110101B
+0846 F0              489                     MOVX @DPTR, A
+0847 120300          490                     LCALL DELAY
+084A 120300          491                     LCALL DELAY
+084D 22              492          RET
+                     493          
+084E                 494          SEG_LEFT_6:
+084E B9060A          495          CJNE R1, #6, SEG_LEFT_7
+0851 7436            496             MOV A, #00110110B
+0853 F0              497                     MOVX @DPTR, A
+0854 120300          498                     LCALL DELAY
+0857 120300          499                     LCALL DELAY
+085A 22              500          RET
+                     501          
+085B                 502          SEG_LEFT_7:
+085B B9070A          503          CJNE R1, #7, SEG_LEFT_8
+085E 7437            504             MOV A, #00110111B
+0860 F0              505                     MOVX @DPTR, A
+0861 120300          506                     LCALL DELAY
+0864 120300          507                     LCALL DELAY
+0867 22              508          RET
+                     509          
+0868                 510          SEG_LEFT_8:
+0868 B9080A          511          CJNE R1, #8, SEG_LEFT_9
+086B 7438            512             MOV A, #00111000B
+A51 MACRO ASSEMBLER  SEGMENT                                                              12/15/2016 15:19:58 PAGE     9
+
+086D F0              513                     MOVX @DPTR, A
+086E 120300          514                     LCALL DELAY
+0871 120300          515                     LCALL DELAY
+0874 22              516          RET
+                     517          
+0875                 518          SEG_LEFT_9:
+0875 B9090A          519              CJNE R1, #9, SEG_LEFT_END
+0878 7439            520             MOV A, #00111001B
+087A F0              521                     MOVX @DPTR, A
+087B 120300          522                     LCALL DELAY
+087E 120300          523                     LCALL DELAY
+0881 22              524              RET
+                     525     
+0882                 526     SEG_LEFT_END:
+0882 22              527     RET
+                     528     
+0900                 529     ORG 900H
+0900                 530     SHOW_RIGHT:
+                     531     
+0900 B8000A          532          CJNE R0, #0, SEG_RIGHT_1
+0903 7430            533                     MOV A, #00110000B
+0905 F0              534                     MOVX @DPTR, A
+0906 120300          535                     LCALL DELAY
+0909 120300          536                     LCALL DELAY
+090C 22              537          RET
+                     538          
+090D                 539          SEG_RIGHT_1:
+090D B8010A          540          CJNE R0, #1, SEG_RIGHT_2
+0910 7431            541                     MOV A, #00110001B
+0912 F0              542                     MOVX @DPTR, A
+0913 120300          543                     LCALL DELAY
+0916 120300          544                     LCALL DELAY
+0919 22              545          RET
+                     546          
+091A                 547          SEG_RIGHT_2:
+091A B8020A          548          CJNE R0, #2, SEG_RIGHT_3
+091D 7432            549                     MOV A, #00110010B
+091F F0              550                     MOVX @DPTR, A
+0920 120300          551                     LCALL DELAY
+0923 120300          552                     LCALL DELAY
+0926 22              553          RET
+                     554         
+0927                 555          SEG_RIGHT_3:
+0927 B8030A          556          CJNE R0, #3, SEG_RIGHT_4
+092A 7433            557                     MOV A, #00110011B
+092C F0              558                     MOVX @DPTR, A
+092D 120300          559                     LCALL DELAY
+0930 120300          560                     LCALL DELAY
+0933 22              561          RET
+                     562          
+0934                 563          SEG_RIGHT_4:
+0934 B8040A          564          CJNE R0, #4, SEG_RIGHT_5
+0937 7434            565                     MOV A, #00110100B
+0939 F0              566                     MOVX @DPTR, A
+093A 120300          567                     LCALL DELAY
+093D 120300          568                     LCALL DELAY
+0940 22              569          RET
+                     570          
+0941                 571          SEG_RIGHT_5:
+0941 B8050A          572          CJNE R0, #5, SEG_RIGHT_6
+0944 7435            573                     MOV A, #00110101B
+0946 F0              574                     MOVX @DPTR, A
+0947 120300          575                     LCALL DELAY
+094A 120300          576                     LCALL DELAY
+094D 22              577          RET
+                     578          
+A51 MACRO ASSEMBLER  SEGMENT                                                              12/15/2016 15:19:58 PAGE    10
+
+094E                 579          SEG_RIGHT_6:
+094E B8060A          580          CJNE R0, #6, SEG_RIGHT_7
+0951 7436            581                     MOV A, #00110110B
+0953 F0              582                     MOVX @DPTR, A
+0954 120300          583                     LCALL DELAY
+0957 120300          584                     LCALL DELAY
+095A 22              585          RET
+                     586          
+095B                 587          SEG_RIGHT_7:
+095B B8070A          588          CJNE R0, #7, SEG_RIGHT_8
+095E 7437            589                     MOV A, #00110111B
+0960 F0              590                     MOVX @DPTR, A
+0961 120300          591                     LCALL DELAY
+0964 120300          592                     LCALL DELAY
+0967 22              593          RET
+                     594          
+0968                 595          SEG_RIGHT_8:
+0968 B8080A          596          CJNE R0, #8, SEG_RIGHT_9
+096B 7438            597                     MOV A, #00111000B
+096D F0              598                     MOVX @DPTR, A
+096E 120300          599                     LCALL DELAY
+0971 120300          600                     LCALL DELAY
+0974 22              601          RET
+                     602          
+0975                 603          SEG_RIGHT_9:
+0975 B8090A          604              CJNE R0, #9, SEG_RIGHT_END
+0978 7439            605                     MOV A, #00111001B
+097A F0              606                     MOVX @DPTR, A
+097B 120300          607                     LCALL DELAY
+097E 120300          608                     LCALL DELAY
+0981 22              609              RET
+                     610              
+0982                 611     SEG_RIGHT_END:
+0982 22              612     RET
+                     613     
+                     614     END
+A51 MACRO ASSEMBLER  SEGMENT                                                              12/15/2016 15:19:58 PAGE    11
+
+SYMBOL TABLE LISTING
+------ ----- -------
+
+
+N A M E             T Y P E  V A L U E   ATTRIBUTES
+
+B. . . . . . . . .  D ADDR   00F0H   A   
+CALC . . . . . . .  C ADDR   0615H   A   
+CALC_ADD . . . . .  C ADDR   0621H   A   
+CALC_DIV . . . . .  C ADDR   06A4H   A   
+CALC_MUL . . . . .  C ADDR   0675H   A   
+CALC_SUB . . . . .  C ADDR   064BH   A   
+DELAY. . . . . . .  C ADDR   0300H   A   
+DISABLE_INT. . . .  C ADDR   01B3H   A   
+DIVIDE . . . . . .  C ADDR   043DH   A   
+ENABLE_INT . . . .  C ADDR   01A6H   A   
+EQUALS_POLLING . .  C ADDR   0600H   A   
+GO_EQUALS_POLLING.  C ADDR   01D0H   A   
+IE . . . . . . . .  D ADDR   00A8H   A   
+INIT_NEXT_INPUT. .  C ADDR   0105H   A   
+LCD_INIT . . . . .  C ADDR   017DH   A   
+LOOPING. . . . . .  C ADDR   01C2H   A   
+LOOP_WAIT. . . . .  C ADDR   0302H   A   
+MAIN . . . . . . .  C ADDR   016DH   A   
+MINUS. . . . . . .  C ADDR   041FH   A   
+MULT . . . . . . .  C ADDR   042EH   A   
+NO_CALC. . . . . .  C ADDR   0612H   A   
+NO_DIGIT . . . . .  C ADDR   016AH   A   
+NO_OPCODE. . . . .  C ADDR   044CH   A   
+OPERATION_POLLING.  C ADDR   0400H   A   
+OUT_0. . . . . . .  C ADDR   0110H   A   
+OUT_1. . . . . . .  C ADDR   0119H   A   
+OUT_2. . . . . . .  C ADDR   0122H   A   
+OUT_3. . . . . . .  C ADDR   012BH   A   
+OUT_4. . . . . . .  C ADDR   0134H   A   
+OUT_5. . . . . . .  C ADDR   013DH   A   
+OUT_6. . . . . . .  C ADDR   0146H   A   
+OUT_7. . . . . . .  C ADDR   014FH   A   
+OUT_8. . . . . . .  C ADDR   0158H   A   
+OUT_9. . . . . . .  C ADDR   0161H   A   
+P1 . . . . . . . .  D ADDR   0090H   A   
+PLUS . . . . . . .  C ADDR   0410H   A   
+PRUEF_R0_BELEGT. .  C ADDR   01AEH   A   
+PRUEF_R1_BELEGT. .  C ADDR   01A9H   A   
+READSBUF_DIGIT . .  C ADDR   0109H   A   
+READSBUF_EQ. . . .  C ADDR   0606H   A   
+READSBUF_OP. . . .  C ADDR   0406H   A   
+RETURN . . . . . .  C ADDR   0405H   A   
+RETURN_EQ. . . . .  C ADDR   0605H   A   
+RI . . . . . . . .  B ADDR   0098H.0 A   
+SAVE_VALUES. . . .  C ADDR   044FH   A   
+SBUF . . . . . . .  D ADDR   0099H   A   
+SCON . . . . . . .  D ADDR   0098H   A   
+SEG_LEFT_1 . . . .  C ADDR   080DH   A   
+SEG_LEFT_2 . . . .  C ADDR   081AH   A   
+SEG_LEFT_3 . . . .  C ADDR   0827H   A   
+SEG_LEFT_4 . . . .  C ADDR   0834H   A   
+SEG_LEFT_5 . . . .  C ADDR   0841H   A   
+SEG_LEFT_6 . . . .  C ADDR   084EH   A   
+SEG_LEFT_7 . . . .  C ADDR   085BH   A   
+SEG_LEFT_8 . . . .  C ADDR   0868H   A   
+SEG_LEFT_9 . . . .  C ADDR   0875H   A   
+SEG_LEFT_END . . .  C ADDR   0882H   A   
+SEG_RIGHT_1. . . .  C ADDR   090DH   A   
+SEG_RIGHT_2. . . .  C ADDR   091AH   A   
+SEG_RIGHT_3. . . .  C ADDR   0927H   A   
+A51 MACRO ASSEMBLER  SEGMENT                                                              12/15/2016 15:19:58 PAGE    12
+
+SEG_RIGHT_4. . . .  C ADDR   0934H   A   
+SEG_RIGHT_5. . . .  C ADDR   0941H   A   
+SEG_RIGHT_6. . . .  C ADDR   094EH   A   
+SEG_RIGHT_7. . . .  C ADDR   095BH   A   
+SEG_RIGHT_8. . . .  C ADDR   0968H   A   
+SEG_RIGHT_9. . . .  C ADDR   0975H   A   
+SEG_RIGHT_END. . .  C ADDR   0982H   A   
+SERINT . . . . . .  C ADDR   0100H   A   
+SHOW_LEFT. . . . .  C ADDR   0800H   A   
+SHOW_RIGHT . . . .  C ADDR   0900H   A   
+TH1. . . . . . . .  D ADDR   008DH   A   
+TMOD . . . . . . .  D ADDR   0089H   A   
+TR1. . . . . . . .  B ADDR   0088H.6 A   
+
+
+REGISTER BANK(S) USED: 0 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S)

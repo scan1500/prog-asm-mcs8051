@@ -1,0 +1,74 @@
+A51 MACRO ASSEMBLER  AUFGABE2                                                             10/27/2016 14:27:21 PAGE     1
+
+
+MACRO ASSEMBLER A51 V8.01
+OBJECT MODULE PLACED IN aufgabe2.OBJ
+ASSEMBLER INVOKED BY: C:\Keil\C51\BIN\A51.EXE aufgabe2.a51 SET(SMALL) DEBUG EP
+
+LOC  OBJ            LINE     SOURCE
+
+0000                   1     ORG 0
+0000 7401              2     MOV A, #1
+0002 75B000            3     MOV P3, #0
+                       4     
+0005                   5     SHIFT_LEFT:
+                       6             
+0005 7964              7             MOV R1, #100
+0007 7AB4              8             MOV R2, #180
+                       9     
+0009 F5B0             10             MOV P3, A
+000B 23               11             RL A
+                      12             
+000C                  13             WAIT_OUT_LEFT:
+000C                  14                     WAIT_IN_LEFT:
+000C 00               15                     NOP
+000D 00               16                     NOP
+000E 00               17                     NOP
+000F D9FB             18                     DJNZ R1, WAIT_IN_LEFT 
+0011 DAF9             19             DJNZ R2, WAIT_OUT_LEFT
+                      20     
+0013 B480EF           21     CJNE A, #10000000B, SHIFT_LEFT
+                      22     
+0016                  23     SHIFT_RIGHT:
+                      24     
+0016 7964             25             MOV R1, #100
+0018 7AB4             26             MOV R2, #180
+                      27     
+                      28     
+001A F5B0             29             MOV P3, A
+001C 03               30             RR A
+                      31     
+001D                  32             WAIT_OUT_RIGHT:
+001D                  33                     WAIT_IN_RIGHT:
+001D 00               34                     NOP
+001E 00               35                     NOP
+001F 00               36                     NOP
+0020 D9FB             37                     DJNZ R1, WAIT_IN_RIGHT 
+0022 DAF9             38             DJNZ R2, WAIT_OUT_RIGHT
+                      39     
+0024 B401EF           40     CJNE A, #00000001B, SHIFT_RIGHT
+                      41     
+0027 80DC             42     SJMP SHIFT_LEFT
+                      43     
+                      44     END
+A51 MACRO ASSEMBLER  AUFGABE2                                                             10/27/2016 14:27:21 PAGE     2
+
+SYMBOL TABLE LISTING
+------ ----- -------
+
+
+N A M E             T Y P E  V A L U E   ATTRIBUTES
+
+P3 . . . . . . . .  D ADDR   00B0H   A   
+SHIFT_LEFT . . . .  C ADDR   0005H   A   
+SHIFT_RIGHT. . . .  C ADDR   0016H   A   
+WAIT_IN_LEFT . . .  C ADDR   000CH   A   
+WAIT_IN_RIGHT. . .  C ADDR   001DH   A   
+WAIT_OUT_LEFT. . .  C ADDR   000CH   A   
+WAIT_OUT_RIGHT . .  C ADDR   001DH   A   
+
+
+REGISTER BANK(S) USED: 0 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S)
